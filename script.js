@@ -11,7 +11,16 @@ const ministries = [
   { name: 'Young Adults’ Fellowship', category: 'Fellowship', description: 'Faith and fellowship for young adults in the congregation.', coordinator: '', phone: '', email: '' }
 ];
 const events = [];
-const galleryImages = [];
+// Gallery cards live in index.html. Replace each card's img src with your image path.
+const galleryImages = [...document.querySelectorAll('#gallery-grid .gallery-item')].map(card => ({
+  src: card.querySelector('img').getAttribute('src'),
+  alt: card.querySelector('img').alt,
+  caption: card.querySelector('span').textContent
+}));
+// Add each group logo path here. Example:
+// 'Children Service': 'images/children-service-logo.png',
+// 'Junior Youth': 'images/junior-youth-logo.png'
+const ministryLogos = {};
 
 const menuButton = document.querySelector('.menu-toggle');
 const navigation = document.querySelector('#site-nav');
@@ -56,7 +65,7 @@ const ministryList = document.querySelector('#ministry-list');
 if (ministryList) {
   if (ministries.length) ministryList.innerHTML = ministries.map((item, index) => `
     <article class="ministry-card" style="--card-index:${index}">
-      <img class="ministry-emblem" src="download.png" alt="" width="58" height="58" loading="lazy">
+      <img class="ministry-emblem" src="${escapeHTML(ministryLogos[item.name] || 'download.png')}" alt="${escapeHTML(item.name)} logo" width="58" height="58" loading="lazy">
       <span class="ministry-category">${escapeHTML(item.category)}</span>
       <h3>${escapeHTML(item.name)}</h3>
       <p>${escapeHTML(item.description)}</p>
@@ -79,10 +88,26 @@ document.querySelectorAll('.filter-button').forEach(button => button.addEventLis
   renderEvents(button.dataset.filter);
 }));
 
-// Accessible image lightbox. Populate galleryImages with approved photos and captions.
+// Church photos are stored in this browser and shown in a gently advancing carousel.
 const galleryDialog = document.querySelector('#gallery-dialog');
 const galleryGrid = document.querySelector('#gallery-grid');
 let galleryIndex = 0;
+let carouselPaused = false;
+const galleryPause = document.querySelector('.gallery-pause');
+function renderGallery() {
+  if (!galleryGrid) return;
+  if (!galleryImages.length) {
+    galleryGrid.innerHTML = '<div class="gallery-placeholder"><span>✦</span><p>Church photos will appear here</p></div>';
+    if (galleryPause) galleryPause.hidden = true;
+    return;
+  }
+  if (galleryPause) galleryPause.hidden = galleryImages.length < 2;
+  const visibleCount = window.matchMedia('(max-width: 700px)').matches ? 1 : 2;
+  galleryIndex = Math.min(galleryIndex, Math.max(0, galleryImages.length - visibleCount));
+  galleryGrid.innerHTML = `<div class="gallery-track">${galleryImages.map((item, index) => `<button class="gallery-item" type="button" data-gallery-index="${index}" aria-label="View ${escapeHTML(item.alt)}"><img src="${escapeHTML(item.src)}" alt="${escapeHTML(item.alt)}" loading="lazy"><span>${escapeHTML(item.caption || item.alt)}</span><i aria-hidden="true">Add your image path in index.html</i></button>`).join('')}</div>`;
+  galleryGrid.querySelectorAll('.gallery-item img').forEach(image => image.addEventListener('error', () => image.closest('.gallery-item').classList.add('no-photo'), { once: true }));
+  galleryGrid.querySelector('.gallery-track').style.transform = `translateX(-${galleryIndex * (galleryGrid.clientWidth / visibleCount + 14)}px)`;
+}
 function showGalleryImage(index) {
   if (!galleryImages.length || !galleryDialog) return;
   galleryIndex = (index + galleryImages.length) % galleryImages.length;
@@ -91,8 +116,8 @@ function showGalleryImage(index) {
   image.alt = galleryImages[galleryIndex].alt;
   galleryDialog.querySelector('figcaption').textContent = galleryImages[galleryIndex].caption || '';
 }
-if (galleryGrid && galleryImages.length) {
-  galleryGrid.innerHTML = galleryImages.map((item, index) => `<button class="gallery-item" type="button" data-gallery-index="${index}" aria-label="View ${escapeHTML(item.alt)}"><img src="${escapeHTML(item.src)}" alt="${escapeHTML(item.alt)}" loading="lazy"><span>${escapeHTML(item.caption || '')}</span></button>`).join('');
+if (galleryGrid) {
+  renderGallery();
   galleryGrid.addEventListener('click', event => {
     const tile = event.target.closest('[data-gallery-index]');
     if (!tile) return;
@@ -100,7 +125,25 @@ if (galleryGrid && galleryImages.length) {
     galleryDialog.showModal();
     galleryDialog.querySelector('.lightbox-close').focus();
   });
+  const advanceGallery = () => {
+    const visibleCount = window.matchMedia('(max-width: 700px)').matches ? 1 : 2;
+    const lastIndex = Math.max(0, galleryImages.length - visibleCount);
+    if (lastIndex > 0 && !carouselPaused && !galleryDialog?.open) {
+      galleryIndex = galleryIndex >= lastIndex ? 0 : galleryIndex + 1;
+      renderGallery();
+    }
+  };
+  window.setInterval(advanceGallery, 4000);
+  galleryGrid.addEventListener('mouseenter', () => { carouselPaused = true; });
+  galleryGrid.addEventListener('mouseleave', () => { carouselPaused = false; });
+  galleryGrid.addEventListener('focusin', () => { carouselPaused = true; });
+  galleryGrid.addEventListener('focusout', event => { if (!galleryGrid.contains(event.relatedTarget)) carouselPaused = false; });
 }
+if (galleryPause) galleryPause.addEventListener('click', () => {
+  carouselPaused = !carouselPaused;
+  galleryPause.setAttribute('aria-pressed', String(carouselPaused));
+  galleryPause.textContent = carouselPaused ? 'Resume slideshow' : 'Pause slideshow';
+});
 if (galleryDialog) {
   galleryDialog.querySelector('.lightbox-close').addEventListener('click', () => galleryDialog.close());
   galleryDialog.querySelector('.lightbox-prev').addEventListener('click', () => showGalleryImage(galleryIndex - 1));
