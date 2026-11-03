@@ -45,3 +45,5 @@ dialog{border:0;padding:0;max-width:min(900px,94vw);max-height:90vh;box-shadow:0
 .coordinator-label{display:block;color:#8c641f;text-transform:uppercase;letter-spacing:.12em;font-size:9px;font-weight:700;margin-bottom:5px}
 .coordinator-box strong{display:block;color:var(--navy);font:normal 19px var(--serif)}.coordinator-box p{margin:5px 0 0;color:var(--muted);font-size:13px}.coordinator-box a{color:var(--blue)}
 @media(max-width:700px){.ministry-visit{opacity:1;transform:none;pointer-events:auto}}
+.gallery-section{padding-top:40px}
+@media(max-width:700px){.gallery-section{padding-top:30px}}
