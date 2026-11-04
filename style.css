@@ -47,3 +47,6 @@ dialog{border:0;padding:0;max-width:min(900px,94vw);max-height:90vh;box-shadow:0
 @media(max-width:700px){.ministry-visit{opacity:1;transform:none;pointer-events:auto}}
 .gallery-section{padding-top:40px}
 @media(max-width:700px){.gallery-section{padding-top:30px}}
+.welcome{padding-bottom:45px}.gallery-section{padding-top:28px}.gallery-section .section-heading{margin-bottom:24px}
+.minister-placeholder{position:relative;overflow:hidden}.minister-photo{display:block;width:100%;height:100%;object-fit:cover}.minister-fallback{display:none}.minister-placeholder.no-portrait .minister-photo{display:none}.minister-placeholder.no-portrait .minister-fallback{display:block}
+@media(max-width:700px){.welcome{padding-bottom:32px}.gallery-section{padding-top:22px}}

@@ -133,12 +133,14 @@ if (galleryGrid) {
       renderGallery();
     }
   };
-  window.setInterval(advanceGallery, 4000);
+  window.setInterval(advanceGallery, 3000);
   galleryGrid.addEventListener('mouseenter', () => { carouselPaused = true; });
   galleryGrid.addEventListener('mouseleave', () => { carouselPaused = false; });
   galleryGrid.addEventListener('focusin', () => { carouselPaused = true; });
   galleryGrid.addEventListener('focusout', event => { if (!galleryGrid.contains(event.relatedTarget)) carouselPaused = false; });
 }
+const ministerPhoto = document.querySelector('.minister-photo');
+if (ministerPhoto) ministerPhoto.addEventListener('error', () => ministerPhoto.closest('.minister-placeholder').classList.add('no-portrait'), { once: true });
 if (galleryPause) galleryPause.addEventListener('click', () => {
   carouselPaused = !carouselPaused;
   galleryPause.setAttribute('aria-pressed', String(carouselPaused));
