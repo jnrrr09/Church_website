@@ -74,6 +74,29 @@ if (ministryList) {
   else ministryList.innerHTML = '<article class="empty-card">Ministry information will be added after the church confirms its active groups.</article>';
 }
 
+// Reveal content cards as they enter the viewport, with a small alternating drift.
+const revealTargets = '.verse-card, .value-card, .minister-intro, .service-card, .ministry-card, .event-card, .sermon-player, .visit-details article';
+let revealObserver;
+if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    entry.target.classList.add('is-visible');
+    revealObserver.unobserve(entry.target);
+  }), { threshold: 0.14, rootMargin: '0px 0px -35px 0px' });
+}
+function observeRevealCards() {
+  if (!revealObserver) return;
+  document.querySelectorAll(revealTargets).forEach((element, index) => {
+    if (element.dataset.revealObserved) return;
+    element.dataset.revealObserved = 'true';
+    element.style.setProperty('--reveal-x', index % 2 ? '16px' : '-16px');
+    element.style.setProperty('--reveal-delay', `${index % 3 * 90}ms`);
+    element.classList.add('reveal-card');
+    revealObserver.observe(element);
+  });
+}
+observeRevealCards();
+
 const eventList = document.querySelector('#event-list');
 function renderEvents(filter = 'all') {
   if (!eventList) return;
@@ -81,6 +104,7 @@ function renderEvents(filter = 'all') {
   eventList.innerHTML = visible.length ? visible.map(event => `
     <article class="event-card"><span class="event-type">${escapeHTML(event.typeLabel)}</span><h3>${escapeHTML(event.title)}</h3><p>${escapeHTML(event.description)}</p><span class="event-date">${escapeHTML(event.date)}${event.time ? ` · ${escapeHTML(event.time)}` : ''}</span></article>`).join('')
     : '<div class="empty-card">No confirmed events or notices to display right now.</div>';
+  observeRevealCards();
 }
 renderEvents();
 document.querySelectorAll('.filter-button').forEach(button => button.addEventListener('click', () => {
@@ -106,7 +130,14 @@ function renderGallery() {
   galleryIndex = Math.min(galleryIndex, Math.max(0, galleryImages.length - visibleCount));
   galleryGrid.innerHTML = `<div class="gallery-track">${galleryImages.map((item, index) => `<button class="gallery-item" type="button" data-gallery-index="${index}" aria-label="View ${escapeHTML(item.alt)}"><img src="${escapeHTML(item.src)}" alt="${escapeHTML(item.alt)}" loading="lazy"><span>${escapeHTML(item.caption || item.alt)}</span><i aria-hidden="true">Add your image path in index.html</i></button>`).join('')}</div>`;
   galleryGrid.querySelectorAll('.gallery-item img').forEach(image => image.addEventListener('error', () => image.closest('.gallery-item').classList.add('no-photo'), { once: true }));
-  galleryGrid.querySelector('.gallery-track').style.transform = `translateX(-${galleryIndex * (galleryGrid.clientWidth / visibleCount + 14)}px)`;
+  positionGalleryTrack();
+}
+function positionGalleryTrack() {
+  if (!galleryGrid) return;
+  const visibleCount = window.matchMedia('(max-width: 700px)').matches ? 1 : 2;
+  const step = (galleryGrid.clientWidth - (visibleCount - 1) * 14) / visibleCount + 14;
+  const track = galleryGrid.querySelector('.gallery-track');
+  if (track) track.style.transform = `translateX(-${galleryIndex * step}px)`;
 }
 function showGalleryImage(index) {
   if (!galleryImages.length || !galleryDialog) return;
@@ -130,10 +161,19 @@ if (galleryGrid) {
     const lastIndex = Math.max(0, galleryImages.length - visibleCount);
     if (lastIndex > 0 && !carouselPaused && !galleryDialog?.open) {
       galleryIndex = galleryIndex >= lastIndex ? 0 : galleryIndex + 1;
-      renderGallery();
+      positionGalleryTrack();
     }
   };
-  window.setInterval(advanceGallery, 3000);
+  let galleryTimer;
+  const galleryObserver = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !galleryTimer) galleryTimer = window.setInterval(advanceGallery, 2000);
+    else if (!entries[0].isIntersecting && galleryTimer) {
+      window.clearInterval(galleryTimer);
+      galleryTimer = null;
+    }
+  }, { threshold: 0.25 });
+  galleryObserver.observe(galleryGrid);
+  window.addEventListener('resize', positionGalleryTrack);
   galleryGrid.addEventListener('mouseenter', () => { carouselPaused = true; });
   galleryGrid.addEventListener('mouseleave', () => { carouselPaused = false; });
   galleryGrid.addEventListener('focusin', () => { carouselPaused = true; });
