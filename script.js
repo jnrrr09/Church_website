@@ -141,6 +141,12 @@ if (galleryGrid) {
 }
 const ministerPhoto = document.querySelector('.minister-photo');
 if (ministerPhoto) ministerPhoto.addEventListener('error', () => ministerPhoto.closest('.minister-placeholder').classList.add('no-portrait'), { once: true });
+const sermonVideo = document.querySelector('.sermon-video');
+if (sermonVideo) {
+  const sermonPlayer = sermonVideo.closest('.sermon-player');
+  sermonVideo.addEventListener('loadedmetadata', () => sermonPlayer.classList.add('has-video'), { once: true });
+  sermonVideo.addEventListener('error', () => sermonPlayer.classList.remove('has-video'));
+}
 if (galleryPause) galleryPause.addEventListener('click', () => {
   carouselPaused = !carouselPaused;
   galleryPause.setAttribute('aria-pressed', String(carouselPaused));
