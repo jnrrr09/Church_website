@@ -17,10 +17,17 @@ const galleryImages = [...document.querySelectorAll('#gallery-grid .gallery-item
   alt: card.querySelector('img').alt,
   caption: card.querySelector('span').textContent
 }));
-// Add each group logo path here. Example:
-// 'Children Service': 'images/children-service-logo.png',
-// 'Junior Youth': 'images/junior-youth-logo.png'
-const ministryLogos = {};
+// Group logos supplied in the logo folder.
+const ministryLogos = {
+  'Children Service': 'logo/Children%27s%20service.jpg',
+  'Junior Youth': 'logo/JY.png',
+  'Women’s Fellowship': 'logo/women%27s%20fellowship.png',
+  'Men’s Fellowship': 'logo/men%27s%20fellowship.webp',
+  'Young People’s Guild': 'logo/YPG.png',
+  'Singing Band': 'logo/singing%20band.webp',
+  'Bible & Prayer Group': 'logo/biblestudy.jpg',
+  'Young Adults’ Fellowship': 'logo/YAF.webp'
+};
 
 const menuButton = document.querySelector('.menu-toggle');
 const navigation = document.querySelector('#site-nav');
@@ -79,9 +86,7 @@ const revealTargets = '.verse-card, .value-card, .minister-intro, .service-card,
 let revealObserver;
 if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
-    if (!entry.isIntersecting) return;
-    entry.target.classList.add('is-visible');
-    revealObserver.unobserve(entry.target);
+    entry.target.classList.toggle('is-visible', entry.isIntersecting);
   }), { threshold: 0.14, rootMargin: '0px 0px -35px 0px' });
 }
 function observeRevealCards() {
