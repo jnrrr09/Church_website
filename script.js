@@ -76,7 +76,7 @@ if (ministryList) {
       <span class="ministry-category">${escapeHTML(item.category)}</span>
       <h3>${escapeHTML(item.name)}</h3>
       <p>${escapeHTML(item.description)}</p>
-      <button type="button" class="ministry-visit" data-ministry="${escapeHTML(item.name)}" aria-label="Visit ${escapeHTML(item.name)} information">Visit <span aria-hidden="true">→</span></button>
+      <button type="button" class="ministry-visit" data-ministry="${escapeHTML(item.name)}" aria-label="Learn more about ${escapeHTML(item.name)}">Learn more</button>
     </article>`).join('');
   else ministryList.innerHTML = '<article class="empty-card">Ministry information will be added after the church confirms its active groups.</article>';
 }
@@ -126,7 +126,7 @@ const galleryPause = document.querySelector('.gallery-pause');
 function renderGallery() {
   if (!galleryGrid) return;
   if (!galleryImages.length) {
-    galleryGrid.innerHTML = '<div class="gallery-placeholder"><span>✦</span><p>Church photos will appear here</p></div>';
+    galleryGrid.innerHTML = '<div class="gallery-placeholder"><p>Church photos will appear here</p></div>';
     if (galleryPause) galleryPause.hidden = true;
     return;
   }
