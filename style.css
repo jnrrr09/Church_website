@@ -69,6 +69,7 @@ dialog{border:0;padding:0;max-width:min(900px,94vw);max-height:90vh;box-shadow:0
 :root{--radius:10px;--radius-sm:7px}
 .button{min-height:50px;border-radius:var(--radius-sm);gap:12px;transition:transform .18s,background .18s,color .18s,box-shadow .18s}
 .button:hover{box-shadow:0 7px 18px rgba(8,25,38,.16)}
+.button:disabled,.button:disabled:hover{opacity:.7;cursor:wait;transform:none;box-shadow:none}
 .values-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .value-card,.service-card,.event-card,.verse-card,.contact-form,.sermon-player,.gallery-item,.minister-placeholder,.minister-intro>div:last-child{border-radius:var(--radius)}
 .service-card{display:block}

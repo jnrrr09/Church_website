@@ -226,17 +226,44 @@ if (detailDialog) {
   detailDialog.addEventListener('click', event => { if (event.target === detailDialog) detailDialog.close(); });
 }
 
-// Frontend validation only: no success state implies a message was sent.
+// Send messages through the temporary FormSubmit endpoint. The recipient must activate it first.
 const contactForm = document.querySelector('#contact-form');
 const feedback = document.querySelector('#form-feedback');
-if (contactForm && feedback) contactForm.addEventListener('submit', event => {
+if (contactForm && feedback) contactForm.addEventListener('submit', async event => {
   event.preventDefault();
   feedback.textContent = '';
   if (!contactForm.reportValidity()) {
     feedback.textContent = 'Please complete each field with a valid email address.';
     return;
   }
-  feedback.textContent = 'Your message is ready, but this website is not connected to a message service yet. Please email libertychurch@gmail.com.';
+  const submitButton = contactForm.querySelector('[type="submit"]');
+  submitButton.disabled = true;
+  submitButton.textContent = 'Sending…';
+  contactForm.setAttribute('aria-busy', 'true');
+
+  try {
+    const formData = Object.fromEntries(new FormData(contactForm));
+    formData._subject = `Liberty Congregation website message: ${formData.subject}`;
+    const response = await fetch('https://formsubmit.co/ajax/armahevans09@gmail.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(formData)
+    });
+    const result = await response.json();
+    if (!response.ok || !(result.success === true || result.success === 'true')) {
+      throw new Error('The form service did not accept this message.');
+    }
+
+    contactForm.reset();
+    feedback.textContent = 'Your message has been submitted. Thank you for getting in touch.';
+    window.alert('Your message has been submitted. Thank you for getting in touch.');
+  } catch (error) {
+    feedback.textContent = 'We could not confirm that your message was sent. Please try again or email armahevans09@gmail.com.';
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = 'Send message';
+    contactForm.removeAttribute('aria-busy');
+  }
 });
 
 // Back-to-top control and current year.
