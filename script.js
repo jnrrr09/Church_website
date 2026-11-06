@@ -226,7 +226,7 @@ if (detailDialog) {
   detailDialog.addEventListener('click', event => { if (event.target === detailDialog) detailDialog.close(); });
 }
 
-// Send messages through the temporary FormSubmit endpoint. The recipient must activate it first.
+// Submit the contact form to the configured Formspree endpoint.
 const contactForm = document.querySelector('#contact-form');
 const feedback = document.querySelector('#form-feedback');
 if (contactForm && feedback) contactForm.addEventListener('submit', async event => {
@@ -240,25 +240,27 @@ if (contactForm && feedback) contactForm.addEventListener('submit', async event 
   submitButton.disabled = true;
   submitButton.textContent = 'Sending…';
   contactForm.setAttribute('aria-busy', 'true');
+  const formData = new FormData(contactForm);
 
   try {
-    const formData = Object.fromEntries(new FormData(contactForm));
-    formData._subject = `Liberty Congregation website message: ${formData.subject}`;
-    const response = await fetch('https://formsubmit.co/ajax/armahevans09@gmail.com', {
+    formData.set('_subject', `Liberty Congregation website message: ${formData.get('subject')}`);
+    const response = await fetch('https://formspree.io/f/mbggelpw', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(formData)
+      headers: { Accept: 'application/json' },
+      body: formData
     });
-    const result = await response.json();
-    if (!response.ok || !(result.success === true || result.success === 'true')) {
-      throw new Error('The form service did not accept this message.');
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || result.errors?.length) {
+      throw new Error(result.errors?.map(item => item.message).join(' ') || 'The form service did not accept this message.');
     }
 
     contactForm.reset();
     feedback.textContent = 'Your message has been submitted. Thank you for getting in touch.';
     window.alert('Your message has been submitted. Thank you for getting in touch.');
   } catch (error) {
-    feedback.textContent = 'We could not confirm that your message was sent. Please try again or email armahevans09@gmail.com.';
+    const emailSubject = encodeURIComponent(`Liberty Congregation website message: ${formData.get('subject')}`);
+    const emailBody = encodeURIComponent(`Name: ${formData.get('name')}\nEmail: ${formData.get('email')}\nFellowship or group: ${formData.get('fellowship') || 'Not provided'}\n\n${formData.get('message')}`);
+    feedback.innerHTML = `We could not confirm that your message was sent. <a href="mailto:armahevans09@gmail.com?subject=${emailSubject}&body=${emailBody}">Open your email app to send it instead</a>.`;
   } finally {
     submitButton.disabled = false;
     submitButton.textContent = 'Send message';
