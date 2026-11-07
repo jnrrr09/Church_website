@@ -84,3 +84,8 @@ dialog{border:0;padding:0;max-width:min(900px,94vw);max-height:90vh;box-shadow:0
 .ministry-visit{border-radius:var(--radius-sm);min-width:100px;text-align:center;opacity:1;transform:none;pointer-events:auto}
 .back-to-top{border-radius:50%}
 @media(max-width:700px){.values-grid{grid-template-columns:1fr}.minister-intro>div:last-child{border-top-width:3px}}
+
+/* Keep the logo greens and red confined to the mission card. */
+.verse-card{background:#f1f6f2;border-bottom-color:#18764f}
+.verse-mark,.verse-caption{color:#18764f}
+.verse-caption::before{content:"";display:inline-block;width:13px;height:2px;margin:0 8px 3px 0;background:#c62828}
